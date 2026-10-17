@@ -27,7 +27,7 @@ public final class OneClientBukkitPlugin extends JavaPlugin implements Listener,
         saveDefaultConfig();
 
         server = new OneClientServer(new BukkitPlatform(this));
-        permissions = new SessionPermissions(this);
+        permissions = new SessionPermissions(this, PlayerTasks.create(this));
         server.getEventBus().subscribe(OneClientPlayerJoinEvent.class, event -> permissions.grant(event.getPlayer().getUniqueId()));
         server.getEventBus().subscribe(OneClientPlayerQuitEvent.class, event -> permissions.revoke(event.getPlayer().getUniqueId()));
         reload();

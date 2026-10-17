@@ -1,10 +1,9 @@
 package org.polyfrost.oneclient.common;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 public interface ServerPlatform {
-    Logger getLogger();
+    PlatformLogger getLogger();
 
     String getApiVersion();
 

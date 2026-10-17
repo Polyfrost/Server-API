@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 
 public final class OneClientServer implements OneClientApi {
     private final ServerPlatform platform;
@@ -34,7 +33,7 @@ public final class OneClientServer implements OneClientApi {
         try {
             packet = Protocol.SERVERBOUND.decode(data);
         } catch (ProtocolException e) {
-            platform.getLogger().log(Level.FINE, "Ignoring malformed OneClient packet from " + name + ": " + e.getMessage());
+            platform.getLogger().debug("Ignoring malformed OneClient packet from " + name + ": " + e.getMessage());
             return;
         }
 
@@ -55,10 +54,6 @@ public final class OneClientServer implements OneClientApi {
     }
 
     private void handleHello(UUID uniqueId, String name, ServerboundHello hello) {
-        if (players.containsKey(uniqueId)) {
-            return;
-        }
-
         ConnectedPlayer player = new ConnectedPlayer(
             uniqueId,
             name,
@@ -66,7 +61,9 @@ public final class OneClientServer implements OneClientApi {
             hello.getClientVersion(),
             hello.getMinecraftVersion()
         );
-        players.put(uniqueId, player);
+        if (players.putIfAbsent(uniqueId, player) != null) {
+            return;
+        }
 
         sendPacket(uniqueId, new ClientboundWelcome(Protocol.VERSION, platform.getApiVersion()));
         eventBus.post(new OneClientPlayerJoinEvent(player));

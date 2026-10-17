@@ -1,0 +1,5 @@
+name: OneClientServerAPI
+version: '${version}'
+main: org.polyfrost.oneclient.bungee.OneClientBungeePlugin
+description: Allows you to add specialized OneClient integration on your server.
+author: Polyfrost

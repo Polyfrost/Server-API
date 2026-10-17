@@ -1,3 +1,3 @@
-rootProject.name = "bukkit-api"
+rootProject.name = "server-api"
 
-include("api", "common", "bukkit")
+include("api", "common", "bukkit", "bungee", "minestom")

@@ -6,14 +6,12 @@ import org.polyfrost.oneclient.api.event.OneClientEvent;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public final class SimpleEventBus implements EventBus {
     private final List<Listener<?>> listeners = new CopyOnWriteArrayList<>();
-    private final Logger logger;
+    private final PlatformLogger logger;
 
-    public SimpleEventBus(Logger logger) {
+    public SimpleEventBus(PlatformLogger logger) {
         this.logger = logger;
     }
 
@@ -29,7 +27,7 @@ public final class SimpleEventBus implements EventBus {
             try {
                 listener.accept(event);
             } catch (Throwable t) {
-                logger.log(Level.SEVERE, "Listener for " + event.getClass().getSimpleName() + " threw an exception", t);
+                logger.error("Listener for " + event.getClass().getSimpleName() + " threw an exception", t);
             }
         }
     }

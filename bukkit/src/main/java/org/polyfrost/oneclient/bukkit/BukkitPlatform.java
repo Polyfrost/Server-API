@@ -2,11 +2,11 @@ package org.polyfrost.oneclient.bukkit;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.polyfrost.oneclient.common.PlatformLogger;
 import org.polyfrost.oneclient.common.ServerPlatform;
 import org.polyfrost.oneclient.common.protocol.Protocol;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 final class BukkitPlatform implements ServerPlatform {
     private final JavaPlugin plugin;
@@ -16,8 +16,8 @@ final class BukkitPlatform implements ServerPlatform {
     }
 
     @Override
-    public Logger getLogger() {
-        return plugin.getLogger();
+    public PlatformLogger getLogger() {
+        return PlatformLogger.of(plugin.getLogger());
     }
 
     @Override

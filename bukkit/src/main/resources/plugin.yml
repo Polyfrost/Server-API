@@ -2,6 +2,7 @@ name: OneClientServerAPI
 version: '${version}'
 main: org.polyfrost.oneclient.bukkit.OneClientBukkitPlugin
 api-version: '1.13'
+folia-supported: true
 description: Server-side API for detecting and integrating with OneClient players.
 authors: [Polyfrost]
 website: https://polyfrost.org
