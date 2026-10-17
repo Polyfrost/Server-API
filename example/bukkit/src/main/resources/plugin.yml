@@ -1,0 +1,6 @@
+name: OneClientExample
+version: '1.0.0'
+main: org.polyfrost.oneclient.example.bukkit.OneClientExamplePlugin
+api-version: '1.13'
+folia-supported: true
+depend: [OneClientServerAPI]
