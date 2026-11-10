@@ -21,10 +21,13 @@ public final class OneClientExamplePlugin extends JavaPlugin {
                 player.sendMessage("You are on OneClient");
             }
 
-            oneClient.setOption("fov.default-fov", 90);
+            if (!oneClient.supports("hurt-cam.disable-hurt-cam")) {
+                return;
+            }
+            oneClient.setOption("hurt-cam.disable-hurt-cam", true);
             oneClient.sendNotification(
                 "{\"text\":\"Welcome\"}",
-                "{\"text\":\"This server set your FOV to 90.\"}",
+                "{\"text\":\"This server turned off hurt camera shake.\"}",
                 Duration.ofSeconds(5),
                 null
             );

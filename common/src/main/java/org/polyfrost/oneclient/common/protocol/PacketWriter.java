@@ -16,7 +16,14 @@ public final class PacketWriter {
     }
 
     public PacketWriter writeString(String value) {
+        return writeString(value, Integer.MAX_VALUE);
+    }
+
+    public PacketWriter writeString(String value, int maxBytes) {
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > maxBytes) {
+            throw new IllegalArgumentException("String is " + bytes.length + " UTF-8 bytes, limit is " + maxBytes);
+        }
         writeVarInt(bytes.length);
         out.write(bytes, 0, bytes.length);
         return this;
@@ -38,7 +45,7 @@ public final class PacketWriter {
         return writeLong(Double.doubleToLongBits(value));
     }
 
-    public PacketWriter writeValue(Object value) {
+    public PacketWriter writeValue(Object value, int maxStringBytes) {
         if (value == null) {
             return writeByte(0);
         }
@@ -53,7 +60,7 @@ public final class PacketWriter {
             return writeByte(3).writeDouble(((Number) value).doubleValue());
         }
         if (value instanceof String) {
-            return writeByte(4).writeString((String) value);
+            return writeByte(4).writeString((String) value, maxStringBytes);
         }
         throw new IllegalArgumentException("Unsupported option value type " + value.getClass().getName());
     }

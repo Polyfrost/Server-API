@@ -100,7 +100,7 @@ class ProtocolRoundTripTest {
 
     @Test
     void unsupportedValueTypeIsRejected() {
-        assertThrows(IllegalArgumentException.class, () -> new PacketWriter().writeValue(new Object()));
+        assertThrows(IllegalArgumentException.class, () -> new PacketWriter().writeValue(new Object(), 1));
     }
 
     @Test
@@ -148,5 +148,36 @@ class ProtocolRoundTripTest {
 
         byte[] shortDouble = new PacketWriter().writeVarInt(0x01).writeVarInt(1).writeString("k").writeByte(3).writeByte(0).toByteArray();
         assertThrows(ProtocolException.class, () -> Protocol.CLIENTBOUND.decode(shortDouble));
+    }
+
+    @Test
+    void writesMatchClientLimits() {
+        String text = repeat('t', 16384);
+        String icon = repeat('i', 256);
+        assertEquals(text, roundTrip(Protocol.CLIENTBOUND, new ClientboundNotification(text, "", 0, icon)).getTitleJson());
+        assertThrows(IllegalArgumentException.class, () -> Protocol.CLIENTBOUND.encode(
+            new ClientboundNotification(text + "t", "", 0, "")));
+        assertThrows(IllegalArgumentException.class, () -> Protocol.CLIENTBOUND.encode(
+            new ClientboundNotification("", "", 0, icon + "i")));
+
+        String value = repeat('\u00e9', 2048);
+        assertEquals(value, roundTrip(Protocol.CLIENTBOUND,
+            new ClientboundSetOptions(Collections.singletonMap("k", value))).getValues().get("k"));
+        assertThrows(IllegalArgumentException.class, () -> Protocol.CLIENTBOUND.encode(
+            new ClientboundSetOptions(Collections.singletonMap("k", value + "x"))));
+    }
+
+    @Test
+    void payloadIsCappedForBukkit() {
+        String text = repeat('t', 16384);
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+            () -> Protocol.CLIENTBOUND.encode(new ClientboundNotification(text, text, 0, "")));
+        assertEquals("ClientboundNotification is 32777 bytes, limit is 32766", e.getMessage());
+    }
+
+    private static String repeat(char c, int count) {
+        char[] chars = new char[count];
+        Arrays.fill(chars, c);
+        return new String(chars);
     }
 }

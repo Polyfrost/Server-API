@@ -5,7 +5,7 @@ import org.polyfrost.oneclient.common.protocol.PacketReader;
 import org.polyfrost.oneclient.common.protocol.PacketWriter;
 
 public final class ClientboundNotification implements Packet {
-    private static final int MAX_TEXT_LENGTH = 262144;
+    private static final int MAX_TEXT_LENGTH = 16384;
     private static final int MAX_ICON_LENGTH = 256;
 
     private final String titleJson;
@@ -31,10 +31,10 @@ public final class ClientboundNotification implements Packet {
 
     @Override
     public void write(PacketWriter writer) {
-        writer.writeString(titleJson)
-            .writeString(descriptionJson)
+        writer.writeString(titleJson, MAX_TEXT_LENGTH)
+            .writeString(descriptionJson, MAX_TEXT_LENGTH)
             .writeVarInt(durationMillis)
-            .writeString(icon);
+            .writeString(icon, MAX_ICON_LENGTH);
     }
 
     public String getTitleJson() {

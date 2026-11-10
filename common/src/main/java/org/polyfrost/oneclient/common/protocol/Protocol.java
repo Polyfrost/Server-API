@@ -11,6 +11,7 @@ import org.polyfrost.oneclient.common.protocol.packet.ServerboundHello;
 public final class Protocol {
     public static final String CHANNEL = "oneclient:api";
     public static final int VERSION = 2;
+    public static final int MAX_PAYLOAD_BYTES = 32766;
 
     public static final PacketRegistry SERVERBOUND = new PacketRegistry()
         .register(0x00, ServerboundHello.class, ServerboundHello::read)
