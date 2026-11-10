@@ -9,18 +9,23 @@ import org.polyfrost.oneclient.common.protocol.Packet;
 import org.polyfrost.oneclient.common.protocol.Protocol;
 import org.polyfrost.oneclient.common.protocol.ProtocolException;
 import org.polyfrost.oneclient.common.protocol.packet.ClientboundWelcome;
+import org.polyfrost.oneclient.common.protocol.packet.ServerboundCapabilities;
 import org.polyfrost.oneclient.common.protocol.packet.ServerboundHello;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class OneClientServer implements OneClientApi {
+    private static final int FIRST_CAPABILITIES_VERSION = 2;
+
     private final ServerPlatform platform;
     private final SimpleEventBus eventBus;
+    private final Map<UUID, ServerboundHello> pending = new ConcurrentHashMap<>();
     private final Map<UUID, ConnectedPlayer> players = new ConcurrentHashMap<>();
 
     public OneClientServer(ServerPlatform platform) {
@@ -39,10 +44,16 @@ public final class OneClientServer implements OneClientApi {
 
         if (packet instanceof ServerboundHello) {
             handleHello(uniqueId, name, (ServerboundHello) packet);
+        } else if (packet instanceof ServerboundCapabilities) {
+            ServerboundHello hello = pending.remove(uniqueId);
+            if (hello != null) {
+                join(uniqueId, name, hello, ((ServerboundCapabilities) packet).getKeys());
+            }
         }
     }
 
     public void handleQuit(UUID uniqueId) {
+        pending.remove(uniqueId);
         ConnectedPlayer player = players.remove(uniqueId);
         if (player != null) {
             eventBus.post(new OneClientPlayerQuitEvent(player));
@@ -53,19 +64,31 @@ public final class OneClientServer implements OneClientApi {
         platform.sendPluginMessage(uniqueId, Protocol.CLIENTBOUND.encode(packet));
     }
 
-    private void handleHello(UUID uniqueId, String name, ServerboundHello hello) {
-        ConnectedPlayer player = new ConnectedPlayer(
-            uniqueId,
-            name,
-            hello.getProtocolVersion(),
-            hello.getClientVersion(),
-            hello.getMinecraftVersion()
-        );
-        if (players.putIfAbsent(uniqueId, player) != null) {
-            return;
+    void send(ConnectedPlayer player, Packet packet) {
+        if (players.get(player.getUniqueId()) == player) {
+            sendPacket(player.getUniqueId(), packet);
         }
+    }
 
+    PlatformLogger logger() {
+        return platform.getLogger();
+    }
+
+    private void handleHello(UUID uniqueId, String name, ServerboundHello hello) {
+        handleQuit(uniqueId);
+        if (hello.getProtocolVersion() >= FIRST_CAPABILITIES_VERSION) {
+            pending.put(uniqueId, hello);
+        }
         sendPacket(uniqueId, new ClientboundWelcome(Protocol.VERSION, platform.getApiVersion()));
+        if (hello.getProtocolVersion() < FIRST_CAPABILITIES_VERSION) {
+            join(uniqueId, name, hello, Collections.<String>emptySet());
+        }
+    }
+
+    private void join(UUID uniqueId, String name, ServerboundHello hello, Set<String> capabilities) {
+        ConnectedPlayer player = new ConnectedPlayer(this, uniqueId, name, hello.getProtocolVersion(),
+            hello.getClientVersion(), hello.getMinecraftVersion(), capabilities);
+        players.put(uniqueId, player);
         eventBus.post(new OneClientPlayerJoinEvent(player));
     }
 

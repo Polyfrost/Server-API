@@ -22,6 +22,42 @@ public final class PacketWriter {
         return this;
     }
 
+    public PacketWriter writeByte(int value) {
+        out.write(value);
+        return this;
+    }
+
+    public PacketWriter writeLong(long value) {
+        for (int shift = 56; shift >= 0; shift -= 8) {
+            out.write((int) (value >>> shift));
+        }
+        return this;
+    }
+
+    public PacketWriter writeDouble(double value) {
+        return writeLong(Double.doubleToLongBits(value));
+    }
+
+    public PacketWriter writeValue(Object value) {
+        if (value == null) {
+            return writeByte(0);
+        }
+        if (value instanceof Boolean) {
+            return writeByte(1).writeByte((Boolean) value ? 1 : 0);
+        }
+        if (value instanceof Integer || value instanceof Short || value instanceof Byte) {
+            int n = ((Number) value).intValue();
+            return writeByte(2).writeVarInt((n << 1) ^ (n >> 31));
+        }
+        if (value instanceof Number) {
+            return writeByte(3).writeDouble(((Number) value).doubleValue());
+        }
+        if (value instanceof String) {
+            return writeByte(4).writeString((String) value);
+        }
+        throw new IllegalArgumentException("Unsupported option value type " + value.getClass().getName());
+    }
+
     public byte[] toByteArray() {
         return out.toByteArray();
     }

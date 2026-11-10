@@ -64,6 +64,12 @@ configure(listOf("api", "common", "bukkit", "bungee", "minestom").map { project(
 project(":common") {
     dependencies {
         "api"(project(":api"))
+        "testImplementation"("org.junit.jupiter:junit-jupiter:5.14.4")
+        "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
+    }
+
+    tasks.named<Test>("test") {
+        useJUnitPlatform()
     }
 }
 
