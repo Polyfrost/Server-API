@@ -58,6 +58,7 @@ public final class OneClientBungeePlugin extends Plugin implements Listener {
             }
             Configuration config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
             permission = config.getString("permission", "").trim();
+            server.setRestrictions(config.getStringList("restrictions.mods"), config.getStringList("restrictions.huds"));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to load " + file, e);
         }

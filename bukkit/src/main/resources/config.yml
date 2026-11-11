@@ -1,1 +1,7 @@
 permission: oneclient.user
+
+# Mods and HUDs OneClient players cannot use here, by mod id and HUD id.
+# They are switched off when a player joins and come back as they were when they leave.
+restrictions:
+  mods: []
+  huds: []
