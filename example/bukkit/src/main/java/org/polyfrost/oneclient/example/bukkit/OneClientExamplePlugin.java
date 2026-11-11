@@ -11,6 +11,7 @@ public final class OneClientExamplePlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        getCommand("restrictions").setExecutor(new RestrictionsCommand());
         subscription = OneClient.getApi().getEventBus().subscribe(OneClientPlayerJoinEvent.class, event -> {
             Player player = getServer().getPlayer(event.getPlayer().getUniqueId());
             if (player != null) {

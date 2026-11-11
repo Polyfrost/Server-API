@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRegisterChannelEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.polyfrost.oneclient.api.OneClient;
@@ -58,6 +59,7 @@ public final class OneClientBukkitPlugin extends JavaPlugin implements Listener,
             holders.add(player.getUniqueId());
         }
         permissions.setNode(getConfig().getString("permission", ""), holders);
+        server.setRestrictions(getConfig().getStringList("restrictions.mods"), getConfig().getStringList("restrictions.huds"));
     }
 
     OneClientServer server() {
@@ -68,6 +70,14 @@ public final class OneClientBukkitPlugin extends JavaPlugin implements Listener,
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
         if (Protocol.CHANNEL.equals(channel)) {
             server.handlePluginMessage(player.getUniqueId(), player.getName(), message);
+        }
+    }
+
+    // the hello can arrive before the client's channel registration, and Bukkit drops what is sent before it
+    @EventHandler
+    public void onRegisterChannel(PlayerRegisterChannelEvent event) {
+        if (Protocol.CHANNEL.equals(event.getChannel())) {
+            server.handleChannelRegistered(event.getPlayer().getUniqueId());
         }
     }
 

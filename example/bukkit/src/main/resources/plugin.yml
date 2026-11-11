@@ -4,3 +4,11 @@ main: org.polyfrost.oneclient.example.bukkit.OneClientExamplePlugin
 api-version: '1.13'
 folia-supported: true
 depend: [OneClientServerAPI]
+commands:
+  restrictions:
+    description: Shows or changes the mods and HUDs OneClient players cannot use
+    usage: /restrictions [mods|huds] [ids...] or /restrictions clear
+    permission: oneclient.example.restrictions
+permissions:
+  oneclient.example.restrictions:
+    default: op
