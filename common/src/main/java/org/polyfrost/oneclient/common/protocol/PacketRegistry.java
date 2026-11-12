@@ -32,6 +32,11 @@ public final class PacketRegistry {
         }
         PacketWriter writer = new PacketWriter().writeVarInt(id);
         packet.write(writer);
-        return writer.toByteArray();
+        byte[] data = writer.toByteArray();
+        if (data.length > Protocol.MAX_PAYLOAD_BYTES) {
+            throw new IllegalArgumentException(packet.getClass().getSimpleName() + " is " + data.length
+                + " bytes, limit is " + Protocol.MAX_PAYLOAD_BYTES);
+        }
+        return data;
     }
 }

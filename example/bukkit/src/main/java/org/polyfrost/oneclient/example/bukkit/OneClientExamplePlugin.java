@@ -3,8 +3,11 @@ package org.polyfrost.oneclient.example.bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.polyfrost.oneclient.api.OneClient;
+import org.polyfrost.oneclient.api.OneClientPlayer;
 import org.polyfrost.oneclient.api.event.EventBus;
 import org.polyfrost.oneclient.api.event.OneClientPlayerJoinEvent;
+
+import java.time.Duration;
 
 public final class OneClientExamplePlugin extends JavaPlugin {
     private EventBus.Subscription subscription;
@@ -12,10 +15,22 @@ public final class OneClientExamplePlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         subscription = OneClient.getApi().getEventBus().subscribe(OneClientPlayerJoinEvent.class, event -> {
-            Player player = getServer().getPlayer(event.getPlayer().getUniqueId());
+            OneClientPlayer oneClient = event.getPlayer();
+            Player player = getServer().getPlayer(oneClient.getUniqueId());
             if (player != null) {
                 player.sendMessage("You are on OneClient");
             }
+
+            if (!oneClient.supports("hurt-cam.disable-hurt-cam")) {
+                return;
+            }
+            oneClient.setOption("hurt-cam.disable-hurt-cam", true);
+            oneClient.sendNotification(
+                "{\"text\":\"Welcome\"}",
+                "{\"text\":\"This server turned off hurt camera shake.\"}",
+                Duration.ofSeconds(5),
+                null
+            );
         });
     }
 

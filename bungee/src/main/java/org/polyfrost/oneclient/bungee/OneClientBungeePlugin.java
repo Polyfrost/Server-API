@@ -14,12 +14,17 @@ import net.md_5.bungee.event.EventPriority;
 import org.polyfrost.oneclient.api.OneClient;
 import org.polyfrost.oneclient.common.OneClientServer;
 import org.polyfrost.oneclient.common.protocol.Protocol;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public final class OneClientBungeePlugin extends Plugin implements Listener {
     private OneClientServer server;
@@ -58,8 +63,36 @@ public final class OneClientBungeePlugin extends Plugin implements Listener {
             }
             Configuration config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);
             permission = config.getString("permission", "").trim();
+            server.setDefaultOptions(options(file));
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to load " + file, e);
+        }
+    }
+
+    // Bungee's Configuration splits every lookup on dots, so option keys like nametag.enabled are read from the raw YAML
+    private static Map<String, Object> options(File file) throws IOException {
+        Object root;
+        try (Reader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+            root = new Yaml().load(reader);
+        }
+        Map<String, Object> options = new LinkedHashMap<>();
+        if (root instanceof Map) {
+            flatten("", ((Map<?, ?>) root).get("options"), options);
+        }
+        return options;
+    }
+
+    private static void flatten(String prefix, Object node, Map<String, Object> out) {
+        if (!(node instanceof Map)) {
+            return;
+        }
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) node).entrySet()) {
+            String key = prefix + entry.getKey();
+            if (entry.getValue() instanceof Map) {
+                flatten(key + ".", entry.getValue(), out);
+            } else {
+                out.put(key, entry.getValue());
+            }
         }
     }
 

@@ -2,7 +2,7 @@
 
 Listen for `OneClientPlayerJoinEvent` and keep a flag in the player's `PersistentDataContainer`. No flag means it's their first OneClient join.
 
-The event fires once per session, when the client's hello packet arrives on the `oneclient:api` channel, shortly after Bukkit's `PlayerJoinEvent`. The API forgets players when they leave, so remembering them is up to your plugin.
+The event fires once the client has finished its handshake on the `oneclient:api` channel, shortly after Bukkit's `PlayerJoinEvent`. That's when the client's capabilities packet arrives, or its hello for older clients that don't send one. The API forgets players when they leave, so remembering them is up to your plugin.
 
 ## Setup
 
@@ -47,18 +47,20 @@ depend: [OneClientServerAPI]
 
 ## Detecting OneClient players
 
-A player counts as a OneClient player once their client sends the hello packet. Until then `isOneClient` returns `false`, so don't check it in `PlayerJoinEvent`; use the API's join event.
+A player counts as a OneClient player once their client finishes the handshake. Until then `isOneClient` returns `false`, so don't check it in `PlayerJoinEvent`; use the API's join event.
 
 | Call | Returns |
 | --- | --- |
 | `OneClient.getApi()` | The `OneClientApi`; throws if OneClientServerAPI isn't enabled |
-| `OneClient.isOneClient(uuid)` | `true` if the player has sent a hello this session; `false` if the API isn't loaded |
+| `OneClient.isOneClient(uuid)` | `true` if the player has finished the handshake this session; `false` if the API isn't loaded |
 | `api.getPlayer(uuid)` | `Optional<OneClientPlayer>` for a connected OneClient player |
 | `api.getPlayers()` | Every OneClient player online right now |
 | `api.getEventBus().subscribe(type, listener)` | A `Subscription`; call `unsubscribe()` in `onDisable` |
-| `OneClientPlayerJoinEvent` / `OneClientPlayerQuitEvent` | Posted on hello and on Bukkit quit; `getPlayer()` is the `OneClientPlayer` |
+| `OneClientPlayerJoinEvent` / `OneClientPlayerQuitEvent` | Posted when the handshake finishes and on Bukkit quit; `getPlayer()` is the `OneClientPlayer` |
 
-`OneClientPlayer` has `getUniqueId()`, `getName()`, `getClientVersion()`, `getMinecraftVersion()`, `getProtocolVersion()` and `getJoinedAtMillis()`.
+`OneClientPlayer` has `getUniqueId()`, `getName()`, `getClientVersion()`, `getMinecraftVersion()`, `getProtocolVersion()`, `getJoinedAtMillis()` and `getCapabilities()`, plus methods to change the player's mod options and show notifications. See [protocol.md](protocol.md) for what those send.
+
+If the client sends hello again on the same connection, the API posts `OneClientPlayerQuitEvent` and then a fresh `OneClientPlayerJoinEvent`. The example's flag check makes the second join a no-op.
 
 On Paper the join event is posted from Bukkit's plugin message callback, so it runs on the main thread and you can use the `Player` directly.
 
@@ -70,7 +72,7 @@ Store a byte under a `NamespacedKey` in the player's `PersistentDataContainer`. 
 2. If the key is already set, they've joined on OneClient before.
 3. Otherwise, set the key and run your first-join code.
 
-This fires on a player's first OneClient join, even if they've played the server on vanilla before. To catch only players new to the server, also check `player.hasPlayedBefore()`. Read it in `PlayerJoinEvent` and keep it until the hello arrives, since the server may write the data file in between. The example below does this.
+This fires on a player's first OneClient join, even if they've played the server on vanilla before. To catch only players new to the server, also check `player.hasPlayedBefore()`. Read it in `PlayerJoinEvent` and keep it until the handshake finishes, since the server may write the data file in between. The example below does this.
 
 ## Example
 
