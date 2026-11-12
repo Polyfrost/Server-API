@@ -1,1 +1,10 @@
 permission: oneclient.user
+
+# Settings every OneClient player gets while on this server, applied on join and again on /oneclient reload.
+# Players get their own settings back when they leave. Keys are the option keys in docs/protocol.md:
+#   mod.<mod id>.enabled: false    switches a mod off (for example mod.appleskin.enabled)
+#   hud.<HUD id>.enabled: false    hides a OneConfig HUD (for example hud.vanillahud-scoreboard.enabled)
+#   hud.<HUD id>.vanilla: true     draws a VanillaHUD element as vanilla (for example hud.vanillahud-bossbar.vanilla)
+#   nametag.enabled: false         any other option key a client lists in its capabilities
+# Values are true/false, numbers or text. Keys a client doesn't support are skipped for that client.
+options: {}

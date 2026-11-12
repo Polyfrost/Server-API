@@ -48,6 +48,29 @@ no capabilities.
 The server only sends keys the client listed in `Capabilities`, and only sends notifications if it listed
 `notification`. It drops anything else and logs it at debug level.
 
+## Switching mods and HUDs off
+
+PolyPlus adds two families of option keys on top of the per-mod ones, and lists them in `Capabilities` like any other:
+
+| Key                    | Value                                        | Covers                                                                                            |
+|------------------------|----------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `mod.<mod id>.enabled` | Boolean, `false` switches the mod off        | Mods OneConfig can switch off: the ones it gates, and the ones whose switch is a OneConfig option |
+| `hud.<HUD id>.enabled` | Boolean, `false` hides the HUD               | Every HUD placed through OneConfig, for example `hud.vanillahud-scoreboard.enabled`               |
+| `hud.<HUD id>.vanilla` | Boolean, `true` draws the element as vanilla | VanillaHUD elements: vanilla position and look, shown even if the player hid it                   |
+
+Like every option, they last until the player leaves or the server resets them, and the player's own settings come
+back afterward.
+
+The Bukkit and Bungee plugins can send options without any code. Every key under `options` in `config.yml` goes to
+each OneClient player when they join, before `OneClientPlayerJoinEvent`, and again to everyone on `/oneclient reload`:
+
+```yaml
+options:
+  mod.appleskin.enabled: false
+  hud.vanillahud-bossbar.vanilla: true
+  nametag.enabled: false
+```
+
 ## Limits
 
 The client rejects a whole packet if any field is over its limit, so the server checks the same limits before sending
